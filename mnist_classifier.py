@@ -14,7 +14,7 @@ from torch.optim.lr_scheduler import StepLR
 class Net(nn.Module):
     def __init__(self, *arg, **kwargs):
         super(Net, self).__init__(*arg, **kwargs)
-        self._add_blocks_to_attrs()
+        self._add_nnblocks_to_attrs()
 
     def forward(self, x):
         x = self.conv1(x)
@@ -31,7 +31,7 @@ class Net(nn.Module):
         output = F.log_softmax(x, dim=1)
         return output
 
-    def _add_blocks_to_attrs(self):
+    def _add_nnblocks_to_attrs(self):
         self.conv1 = nn.Conv2d(1, 32, 3, 1)
         self.conv2 = nn.Conv2d(32, 64, 3, 1)
         self.dropout1 = nn.Dropout(0.25)
@@ -179,7 +179,7 @@ def main():
 
     if args.save_model:
         model_fname = gen_model_fname(args)
-        torch.save(model.state_dict(), f"../models/{model_fname}")
+        torch.save(model.state_dict(), f"./models/{model_fname}")
 
 
 if __name__ == "__main__":
