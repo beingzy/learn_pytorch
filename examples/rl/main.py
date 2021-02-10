@@ -163,7 +163,7 @@ def optimize_model():
 
 
 num_episodes = 50
-for i_spisode in range(num_episodes):
+for i_episode in range(num_episodes):
     # Initialize the environment and state
     env.reset()
     last_screen = get_screen(env, resize, device)
@@ -172,3 +172,36 @@ for i_spisode in range(num_episodes):
     for t in count():
         # select and performan action
         action = select_action(state)
+        _, reward, done, _ = env.step(action.item())
+        reward = torch.tensor([reward], device=device)
+
+        # Observer new state
+        last_screen = current_screen
+        current_screen = get_screen(env, resize, device)
+        if not done:
+            next_state = current_screen - last_screen
+        else:
+            next_state = None
+
+        # Store the transition in memory
+        memory.push(state, action, next_state, reward)
+
+        # move to the next state
+        state = next_state
+        
+        # perform one step of the optimization (on the target network)
+        optimize_model()
+        if done:
+            episode_durations.append(t + 1)
+            plot_durations()
+            break
+    # update the target network, copying all weights and biases in DQN
+    if i_episode % TARGET_UPDATE == 0:
+        target_net.load_state_dict(policy_net.state_dict())
+
+
+print('Complete')
+env.render()
+env.close()
+plt.ioff()
+plt.show()
