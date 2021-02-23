@@ -4,8 +4,8 @@ import math
 import torch
 import torch.nn as nn
 
-from .model import TransformerModel
-from .process_data import (
+from model import TransformerModel
+from process_data import (
     tokenizer,
     vocab,
     device,
@@ -47,7 +47,7 @@ def train(model):
                 epoch, 
                 batch, 
                 len(train_data) // bptt, 
-                scheduler.get_lr()[0],
+                scheduler.get_last_lr()[0],
                 elapsed * 1000 / log_interval,
                 cur_loss, math.exp(cur_loss))
 
@@ -102,26 +102,27 @@ def _gen_epoch_info():
         )
 
 
-best_val_loss = float("inf")
-epochs = 3
-best_model = None
-for epoch in range(1, epochs + 1):
-    epoch_start_time = time.time()
-    train(model)
-    val_loss = evaluate(model, val_data)
-    print(_gen_line_separator())
-    print(_gen_epoch_info())
-    print(_gen_line_separator())
+if __name__ == "__main__":
+    best_val_loss = float("inf")
+    epochs = 3
+    best_model = None
+    for epoch in range(1, epochs + 1):
+        epoch_start_time = time.time()
+        train(model)
+        val_loss = evaluate(model, val_data)
+        print(_gen_line_separator())
+        print(_gen_epoch_info())
+        print(_gen_line_separator())
 
-    if val_loss < best_val_loss:
-        best_val_loss = val_loss
-        best_model = model
-    
-    scheduler.step()
+        if val_loss < best_val_loss:
+            best_val_loss = val_loss
+            best_model = model
+        
+        scheduler.step()
 
-# reporting best model performance:
-test_loss = evaluate(best_model, test_data)
-print('=' * 89)
-print('| End of training | test loss {:5.2f} | test ppl {:8.2f}'.format(
-    test_loss, math.exp(test_loss)))
-print('=' * 89)
+    # reporting best model performance:
+    test_loss = evaluate(best_model, test_data)
+    print('=' * 89)
+    print('| End of training | test loss {:5.2f} | test ppl {:8.2f}'.format(
+        test_loss, math.exp(test_loss)))
+    print('=' * 89)

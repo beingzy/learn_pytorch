@@ -1,4 +1,5 @@
 import io
+
 import torch
 from torchtext.utils import (
     download_from_url,
@@ -9,7 +10,7 @@ from torchtext.vocab import build_vocab_from_iterator
 
 
 url = 'https://s3.amazonaws.com/research.metamind.io/wikitext/wikitext-2-v1.zip'
-test_filepath, valid_filepath, train_filepath = extract_archive(
+test_filepath, val_filepath, train_filepath = extract_archive(
     download_from_url(url))
 
 tokenizer = get_tokenizer('basic_english')
@@ -25,7 +26,7 @@ def data_process(raw_text_iter):
     return torch.cat(tuple(filter(lambda t: t.numel() > 0, data)))
 
 
-def batchify(data, bsz, device=device):
+def batchify(data, bsz, device):
     n_batch = data.size(0) // bsz
     data = data.narrow(0, 0, n_batch * bsz)
     data = data.view(bsz, -1).t().contiguous()
@@ -44,10 +45,10 @@ train_data = data_process(iter(io.open(train_filepath, encoding="utf8")))
 val_data = data_process(iter(io.open(val_filepath, encoding="utf8")))
 test_data = data_process(iter(io.open(test_filepath, encoding="utf8")))
 
-device = torch.device("cuda" if torch.cuda.is_available else "cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 batch_size = 20
 eval_batch_size = 10
-train_data = batchify(train_data, batch_size)
-val_data = batchify(val_data, eval_batch_size)
-test_data = batchify(test_data, eval_batch_size)
+train_data = batchify(train_data, batch_size, device)
+val_data = batchify(val_data, eval_batch_size, device)
+test_data = batchify(test_data, eval_batch_size, device)
