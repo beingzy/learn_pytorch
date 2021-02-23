@@ -15,6 +15,7 @@ from process_data import (
     test_data,
     get_batch,
 )
+from utils import save_model
 
 
 ntokens = len(vocab.stoi)
@@ -26,11 +27,12 @@ dropout = 0.2
 
 model = TransformerModel(
     ntokens, emb_size, nhid, nlayers, nhead, dropout).to(device)
-
 criterion = nn.CrossEntropyLoss()
 lr = 5.0 # initial learning rate, will update with `StepLR` over epochs
 optimizer = torch.optim.SGD(model.parameters(), lr=lr)
 scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1.0, gamma=0.95)
+
+MODEL_PATH = "./models/"
 
 
 def train(model):
@@ -102,6 +104,14 @@ def _gen_epoch_info():
         )
 
 
+def _gen_model_filename(text=None):
+    """
+    """
+    from datetime import datetime 
+    fname_appendix = datetime.now().strftime('%Y%m%d')
+    return fname_appendix if text is None else text + "_" + fname_appendix 
+
+
 if __name__ == "__main__":
     best_val_loss = float("inf")
     epochs = 3
@@ -117,6 +127,8 @@ if __name__ == "__main__":
         if val_loss < best_val_loss:
             best_val_loss = val_loss
             best_model = model
+            filename = MODEL_PATH + _gen_model_filename("best_model")
+            save_model(model, filename)
         
         scheduler.step()
 
